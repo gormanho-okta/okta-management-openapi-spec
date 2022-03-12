@@ -7,10 +7,12 @@ import java.util.List;
 import java.util.Map;
 
 public interface Processor {
-    static Processor create(String type, List<Map<String, String>> parameters) {
-        switch (type.toLowerCase()) {
+    static Processor create(String type, List<Map<String, Object>> parameters) {
+        switch (type) {
             case "rename":
                 return new RenameProcessor(parameters);
+            case "hideBaseMember":
+                return new HideBaseMemberProcessor(parameters);
         }
         throw new RuntimeException("Unsupported processor type: " + type);
     }

@@ -5,5 +5,5 @@ import java.util.Map;
 
 public class ProcessorSpec {
     public String type;
-    public List<Map<String, String>> parameters;
+    public List<Map<String, Object>> parameters;
 }

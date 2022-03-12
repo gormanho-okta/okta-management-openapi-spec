@@ -13,13 +13,13 @@ import static com.okta.sdk.OktaSdkExtensions.RENAME;
 public class RenameProcessor implements Processor {
     private Map<String, String> renames = new HashMap<>();
 
-    public RenameProcessor(List<Map<String, String>> parameters) {
-        for (Map<String, String> parameter : parameters) {
-            String from = parameter.get("from");
+    public RenameProcessor(List<Map<String, Object>> parameters) {
+        for (Map<String, Object> parameter : parameters) {
+            String from = (String) parameter.get("from");
             if (renames.containsKey(from)) {
                 throw new RuntimeException("Trying to rename schema more than once: " + from);
             }
-            renames.put(from, parameter.get("to"));
+            renames.put(from, (String) parameter.get("to"));
         }
     }
 
