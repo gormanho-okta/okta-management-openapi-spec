@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.okta.sdk.OktaSdkExtensions.RENAME;
+import static com.okta.sdk.OpenApiExtensions.RENAME;
 
 public class RenameProcessor implements Processor {
     private Map<String, String> renames = new HashMap<>();

@@ -2,32 +2,16 @@ package com.okta.sdk.generators;
 
 import io.swagger.codegen.v3.CodegenModel;
 import io.swagger.codegen.v3.CodegenProperty;
-import io.swagger.codegen.v3.CodegenType;
 import io.swagger.codegen.v3.generators.dotnet.CSharpClientCodegen;
 import io.swagger.v3.oas.models.media.Schema;
 
 import java.util.Map;
 import java.util.Set;
 
-import static com.okta.sdk.OktaSdkExtensions.HIDE_BASE_MEMBER;
-import static com.okta.sdk.OktaSdkExtensions.RENAME;
+import static com.okta.sdk.OpenApiExtensions.HIDE_BASE_MEMBER;
+import static com.okta.sdk.OpenApiExtensions.RENAME;
 
-public class CSharpCodeGen extends CSharpClientCodegen {
-    @Override
-    public CodegenType getTag() {
-        return CodegenType.CLIENT;
-    }
-
-    @Override
-    public String getName() {
-        return "CSharpCodeGen";
-    }
-
-    @Override
-    public String getHelp() {
-        return "C# Code Generator";
-    }
-
+public class CSharpCodegen extends CSharpClientCodegen {
     @Override
     public String toModelName(String name) {
         String modelName = super.toModelName(name);

@@ -1,6 +1,5 @@
 package com.okta.sdk;
 
-import io.swagger.codegen.v3.ClientOptInput;
 import io.swagger.codegen.v3.CodegenConstants;
 import io.swagger.codegen.v3.config.CodegenConfigurator;
 import org.apache.maven.plugin.AbstractMojo;
@@ -12,7 +11,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import java.io.File;
 
 @Mojo(name = "generate", defaultPhase = LifecyclePhase.GENERATE_SOURCES, threadSafe = true)
-public class OktaSdkCodeGenMojo extends AbstractMojo {
+public class OktaSdkCodegenMojo extends AbstractMojo {
     @Parameter(name = "configFile")
     private File configFile;
 
@@ -33,18 +32,20 @@ public class OktaSdkCodeGenMojo extends AbstractMojo {
 
     public void execute() throws MojoExecutionException {
         try {
-            CodegenConfigurator configurator = CodegenConfigurator.fromFile(configFile.getAbsolutePath());
-            configurator.setInputSpecURL("management.yaml");
-            configurator.setLang(language);
-            configurator.setModelPackage(modelPackage);
-            configurator.setTemplateDir(templateDirectory.getAbsolutePath());
-            configurator.setOutputDir(output.getAbsolutePath());
-            System.setProperty(CodegenConstants.MODEL_TESTS, "false");
-            System.setProperty(CodegenConstants.MODEL_DOCS, "false");
-            System.setProperty(CodegenConstants.API_TESTS, "false");
-            System.setProperty(CodegenConstants.API_DOCS, "false");
-            ClientOptInput input = configurator.toClientOptInput();
-            new OktaSdkGenerator(errataFile).opts(input).generate();
+            new OktaSdkGenerator(errataFile)
+                    .opts(CodegenConfigurator
+                            .fromFile(configFile.getAbsolutePath())
+                            .setInputSpecURL("management.yaml")
+                            .setLang(language)
+                            .setModelPackage(modelPackage)
+                            .setTemplateDir(templateDirectory.getAbsolutePath())
+                            .setOutputDir(output.getAbsolutePath())
+                            .addSystemProperty(CodegenConstants.MODEL_TESTS, "false")
+                            .addSystemProperty(CodegenConstants.MODEL_DOCS, "false")
+                            .addSystemProperty(CodegenConstants.API_TESTS, "false")
+                            .addSystemProperty(CodegenConstants.API_DOCS, "false")
+                            .toClientOptInput())
+                    .generate();
         } catch (Exception e) {
             getLog().error(e);
             throw new MojoExecutionException("Code generation failed.");

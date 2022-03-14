@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.okta.sdk.OktaSdkExtensions.HIDE_BASE_MEMBER;
+import static com.okta.sdk.OpenApiExtensions.HIDE_BASE_MEMBER;
 
 public class HideBaseMemberProcessor implements Processor {
     private final Map<String, Set<String>> models = new HashMap<>();
