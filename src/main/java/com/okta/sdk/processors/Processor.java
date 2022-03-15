@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface Processor {
-    static Processor create(String type, List<Map<String, Object>> parameters) {
+    static Processor create(String type, Object parameters) {
         switch (type) {
             case "rename":
                 return new RenameProcessor(parameters);

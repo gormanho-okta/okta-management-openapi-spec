@@ -15,8 +15,8 @@ import static com.okta.sdk.OpenApiExtensions.HIDE_BASE_MEMBER;
 public class HideBaseMemberProcessor implements Processor {
     private final Map<String, Set<String>> models = new HashMap<>();
 
-    public HideBaseMemberProcessor(List<Map<String, Object>> parameters) {
-        for (Map<String, Object> parameter : parameters) {
+    public HideBaseMemberProcessor(Object parameters) {
+        for (Map<String, Object> parameter : (List<Map<String, Object>>) parameters) {
             @SuppressWarnings("unchecked")
             List<String> properties = (List<String>) parameter.get("properties");
             models.put((String) parameter.get("model"), new HashSet<>(properties));
