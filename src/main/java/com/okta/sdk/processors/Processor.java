@@ -8,6 +8,8 @@ public interface Processor {
         switch (type) {
             case "hideBaseMember":
                 return new HideBaseMemberProcessor(parameters);
+            case "renameApi":
+                return new RenameApiProcessor(parameters);
             case "renameModel":
                 return new RenameModelProcessor(parameters);
             case "renameRequestBody":

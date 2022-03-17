@@ -16,7 +16,7 @@ public class RenameModelProcessor extends RenameProcessor {
     @Override
     public void process(OpenAPI spec, CodegenConfig config) {
         Map<String, Schema> schemas = spec.getComponents().getSchemas();
-        forEachRename(rename -> {
+        getRenames().forEach(rename -> {
             for (String schemaName : schemas.keySet()) {
                 String modelName = config.toModelName(schemaName);
                 if (modelName.equals(rename.get("from"))) {

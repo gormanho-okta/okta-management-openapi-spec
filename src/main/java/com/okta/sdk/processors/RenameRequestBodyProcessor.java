@@ -19,7 +19,7 @@ public class RenameRequestBodyProcessor extends RenameProcessor {
         Map<String, Operation> operations = spec.getPaths().values().stream()
                 .flatMap(pathItem -> pathItem.readOperations().stream())
                 .collect(Collectors.toMap(Operation::getOperationId, Function.identity()));
-        forEachRename(rename -> {
+        getRenames().forEach(rename -> {
             Operation operation = operations.get(rename.get("operation"));
             if (operation != null) {
                 RequestBody requestBody = operation.getRequestBody();

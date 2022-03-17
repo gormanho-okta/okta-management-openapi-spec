@@ -3,6 +3,7 @@ package com.okta.sdk.processors;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 @SuppressWarnings("unchecked")
 public abstract class RenameProcessor implements Processor {
@@ -12,9 +13,7 @@ public abstract class RenameProcessor implements Processor {
         this.renames = (List<Map<String, String>>) parameters;
     }
 
-    protected void forEachRename(Consumer<Map<String, String>> rename) {
-        if (renames != null) {
-            ((List<Map<String, String>>) renames).forEach(rename);
-        }
+    protected Stream<Map<String, String>> getRenames() {
+        return renames == null ? Stream.empty() : renames.stream();
     }
 }

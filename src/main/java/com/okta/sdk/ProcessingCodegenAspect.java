@@ -14,11 +14,12 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.okta.sdk.OpenApiExtensions.HIDE_BASE_MEMBER;
+import static com.okta.sdk.OpenApiExtensions.RENAME_API;
 import static com.okta.sdk.OpenApiExtensions.RENAME_MODEL;
 
 @Aspect
 public class ProcessingCodegenAspect {
-    @Around("call(String io.swagger.codegen.v3.CodegenConfig+.toModelName(String)) && args(name)")
+    @Around("execution(String io.swagger.codegen.v3.CodegenConfig+.toModelName(String)) && args(name)")
     public String toModelName(ProceedingJoinPoint joinPoint, String name) throws Throwable {
         String modelName = (String) joinPoint.proceed(new Object[]{name});
         DefaultCodegenConfig codegen = (DefaultCodegenConfig) joinPoint.getTarget();
@@ -36,7 +37,7 @@ public class ProcessingCodegenAspect {
         return modelName;
     }
 
-    @After("call(void io.swagger.codegen.v3.CodegenConfig+.postProcessModelProperty(CodegenModel, CodegenProperty)) && args(model, property)")
+    @After("execution(void io.swagger.codegen.v3.CodegenConfig+.postProcessModelProperty(CodegenModel, CodegenProperty)) && args(model, property)")
     public void postProcessModelProperty(JoinPoint joinPoint, CodegenModel model, CodegenProperty property) {
         Map<String, Object> extensions = model.getVendorExtensions();
         if (extensions.containsKey(HIDE_BASE_MEMBER)) {
@@ -45,5 +46,18 @@ public class ProcessingCodegenAspect {
                 property.getVendorExtensions().put(HIDE_BASE_MEMBER, true);
             }
         }
+    }
+
+    @Around("execution(String io.swagger.codegen.v3.CodegenConfig+.toApiName(String)) && args(name)")
+    public String toApiName(ProceedingJoinPoint joinPoint, String name) throws Throwable {
+        String apiName = (String) joinPoint.proceed(new Object[]{name});
+        DefaultCodegenConfig codegen = (DefaultCodegenConfig) joinPoint.getTarget();
+        if (codegen.getOpenAPI() != null && codegen.getOpenAPI().getExtensions() != null) {
+            Map<String, String> renames = (Map<String, String>) codegen.getOpenAPI().getExtensions().get(RENAME_API);
+            if (renames.containsKey(apiName)) {
+                apiName = renames.get(apiName);
+            }
+        }
+        return apiName;
     }
 }
