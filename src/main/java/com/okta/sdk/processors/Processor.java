@@ -6,10 +6,12 @@ import io.swagger.v3.oas.models.OpenAPI;
 public interface Processor {
     static Processor create(String type, Object parameters) {
         switch (type) {
-            case "rename":
-                return new RenameProcessor(parameters);
             case "hideBaseMember":
                 return new HideBaseMemberProcessor(parameters);
+            case "renameModel":
+                return new RenameModelProcessor(parameters);
+            case "renameRequestBody":
+                return new RenameRequestBodyProcessor(parameters);
             case "setOperationTags":
                 return new SetOperationTagsProcessor(parameters);
         }

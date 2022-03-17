@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.okta.sdk.OpenApiExtensions.HIDE_BASE_MEMBER;
-import static com.okta.sdk.OpenApiExtensions.RENAME;
+import static com.okta.sdk.OpenApiExtensions.RENAME_MODEL;
 
 @Aspect
 public class ProcessingCodegenAspect {
@@ -27,9 +27,9 @@ public class ProcessingCodegenAspect {
                 && codegen.getOpenAPI().getComponents().getSchemas() != null) {
             Schema schema = codegen.getOpenAPI().getComponents().getSchemas().get(name);
             if (schema != null && schema.getExtensions() != null) {
-                String renameTo = (String) schema.getExtensions().get(RENAME);
-                if (renameTo != null) {
-                    return renameTo;
+                String rename = (String) schema.getExtensions().get(RENAME_MODEL);
+                if (rename != null) {
+                    modelName = rename;
                 }
             }
         }
