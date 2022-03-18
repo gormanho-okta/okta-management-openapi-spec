@@ -20,6 +20,7 @@ import static com.okta.sdk.OpenApiExtensions.HIDE_BASE_MEMBER;
 import static com.okta.sdk.OpenApiExtensions.REMOVE_PARAMETER;
 import static com.okta.sdk.OpenApiExtensions.RENAME_API;
 import static com.okta.sdk.OpenApiExtensions.RENAME_MODEL;
+import static com.okta.sdk.OpenApiExtensions.RENAME_PARAMETER;
 import static com.okta.sdk.OpenApiSpec.getOperations;
 
 @Aspect
@@ -73,6 +74,17 @@ public class ProcessingCodegenAspect {
                 .filter(Objects::nonNull)
                 .forEach(parameters -> parameters.removeIf(parameter ->
                         !parameter.getRequired() && remove.contains(parameter.getName())));
+    }
+
+    @Around("execution(String toVarName(String)) && args(name)")
+    public String toVarName(ProceedingJoinPoint joinPoint, String name) throws Throwable {
+        String varName = (String) joinPoint.proceed(new Object[]{name});
+        DefaultCodegenConfig codegen = (DefaultCodegenConfig) joinPoint.getTarget();
+        Map<String, String> renames = getSpecExtension(codegen.getOpenAPI(), RENAME_PARAMETER, Collections.emptyMap());
+        if (renames.containsKey(varName)) {
+            varName = renames.get(varName);
+        }
+        return varName;
     }
 
     private <T> T getSpecExtension(OpenAPI spec, String name, T defaultValue) {
