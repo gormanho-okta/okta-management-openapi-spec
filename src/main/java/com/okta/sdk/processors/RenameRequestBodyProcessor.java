@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.okta.sdk.OpenApiSpec.getOperations;
+
 public class RenameRequestBodyProcessor extends RenameProcessor {
     public RenameRequestBodyProcessor(Object parameters) {
         super(parameters);
@@ -16,8 +18,7 @@ public class RenameRequestBodyProcessor extends RenameProcessor {
 
     @Override
     public void process(OpenAPI spec, CodegenConfig config) {
-        Map<String, Operation> operations = spec.getPaths().values().stream()
-                .flatMap(pathItem -> pathItem.readOperations().stream())
+        Map<String, Operation> operations = getOperations(spec)
                 .collect(Collectors.toMap(Operation::getOperationId, Function.identity()));
         getRenames().forEach(rename -> {
             Operation operation = operations.get(rename.get("operation"));

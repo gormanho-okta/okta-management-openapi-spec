@@ -20,6 +20,7 @@ import static com.okta.sdk.OpenApiExtensions.HIDE_BASE_MEMBER;
 import static com.okta.sdk.OpenApiExtensions.REMOVE_PARAMETER;
 import static com.okta.sdk.OpenApiExtensions.RENAME_API;
 import static com.okta.sdk.OpenApiExtensions.RENAME_MODEL;
+import static com.okta.sdk.OpenApiSpec.getOperations;
 
 @Aspect
 @SuppressWarnings("unchecked")
@@ -67,8 +68,7 @@ public class ProcessingCodegenAspect {
     @After("execution(void preprocessOpenAPI(OpenAPI)) && args(spec)")
     public void preprocessOpenAPI(OpenAPI spec) {
         Set<String> remove = getSpecExtension(spec, REMOVE_PARAMETER, Collections.emptySet());
-        spec.getPaths().values().stream()
-                .flatMap(pathItem -> pathItem.readOperations().stream())
+        getOperations(spec)
                 .map(Operation::getParameters)
                 .filter(Objects::nonNull)
                 .forEach(parameters -> parameters.removeIf(parameter ->
