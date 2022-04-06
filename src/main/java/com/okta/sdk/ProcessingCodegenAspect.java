@@ -1,6 +1,7 @@
 package com.okta.sdk;
 
 import io.swagger.codegen.v3.CodegenModel;
+import io.swagger.codegen.v3.CodegenOperation;
 import io.swagger.codegen.v3.CodegenProperty;
 import io.swagger.codegen.v3.generators.DefaultCodegenConfig;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -12,9 +13,12 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.okta.sdk.OpenApiExtensions.HIDE_BASE_MEMBER;
 import static com.okta.sdk.OpenApiExtensions.REMOVE_PARAMETER;
@@ -85,6 +89,18 @@ public class ProcessingCodegenAspect {
             varName = renames.get(varName);
         }
         return varName;
+    }
+
+    @Around("execution(Map<String, Object> postProcessOperations(Map<String, Object>)) && args(objs)")
+    public Map<String, Object> postProcessOperations(ProceedingJoinPoint joinPoint, Map<String, Object> objs) throws Throwable {
+        Map<String, Object> result = (Map<String, Object>) joinPoint.proceed(new Object[]{objs});
+        Map<String, Object> operations = (Map<String, Object>) result.get("operations");
+        operations.put("operation", ((List<CodegenOperation>) operations.get("operation"))
+                .stream()
+                .sorted(Comparator.comparing(CodegenOperation::getPath)
+                        .thenComparing(CodegenOperation::getHttpMethod))
+                .collect(Collectors.toList()));
+        return result;
     }
 
     private <T> T getSpecExtension(OpenAPI spec, String name, T defaultValue) {
