@@ -1,5 +1,8 @@
 package com.okta.sdk;
 
+import com.github.jknack.handlebars.Handlebars;
+import com.github.jknack.handlebars.helper.ConditionalHelpers;
+import com.github.jknack.handlebars.helper.StringHelpers;
 import io.swagger.codegen.v3.CodegenModel;
 import io.swagger.codegen.v3.CodegenOperation;
 import io.swagger.codegen.v3.CodegenProperty;
@@ -30,6 +33,12 @@ import static com.okta.sdk.OpenApiSpec.getOperations;
 @Aspect
 @SuppressWarnings("unchecked")
 public class ProcessingCodegenAspect {
+    @Around("execution(void addHandlebarHelpers(Handlebars)) && args(handlebars)")
+    public void addHandlebarHelpers(Handlebars handlebars) {
+        handlebars.registerHelpers(ConditionalHelpers.class);
+        handlebars.registerHelpers(StringHelpers.class);
+    }
+
     @Around("execution(String io.swagger.codegen.v3.CodegenConfig+.toModelName(String)) && args(name)")
     public String toModelName(ProceedingJoinPoint joinPoint, String name) throws Throwable {
         String modelName = (String) joinPoint.proceed(new Object[]{name});
