@@ -18,6 +18,8 @@ public interface Processor {
                 return new RenameParameterProcessor(parameters);
             case "renameRequestBody":
                 return new RenameRequestBodyProcessor(parameters);
+            case "setBooleanOperationPrefix":
+                return new SetBooleanOperationPrefixProcessor(parameters);
             case "setOperationTags":
                 return new SetOperationTagsProcessor(parameters);
         }

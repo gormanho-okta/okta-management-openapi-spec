@@ -28,6 +28,7 @@ import static com.okta.sdk.OpenApiExtensions.REMOVE_PARAMETER;
 import static com.okta.sdk.OpenApiExtensions.RENAME_API;
 import static com.okta.sdk.OpenApiExtensions.RENAME_MODEL;
 import static com.okta.sdk.OpenApiExtensions.RENAME_PARAMETER;
+import static com.okta.sdk.OpenApiExtensions.SET_BOOLEAN_OPERATION_PREFIX;
 import static com.okta.sdk.OpenApiSpec.getOperations;
 
 @Aspect
@@ -98,6 +99,15 @@ public class ProcessingCodegenAspect {
             varName = renames.get(varName);
         }
         return varName;
+    }
+
+    @Around("execution(String toBooleanGetter(String)) && args(name)")
+    public String toBooleanGetter(ProceedingJoinPoint joinPoint, String name) throws Throwable {
+        DefaultCodegenConfig codegen = (DefaultCodegenConfig) joinPoint.getTarget();
+        String prefix = getSpecExtension(codegen.getOpenAPI(), SET_BOOLEAN_OPERATION_PREFIX, null);
+        return prefix == null
+                ? (String) joinPoint.proceed(new Object[]{name})
+                : prefix + codegen.getterAndSetterCapitalize(name);
     }
 
     @Around("execution(Map<String, Object> postProcessOperations(Map<String, Object>)) && args(objs)")
