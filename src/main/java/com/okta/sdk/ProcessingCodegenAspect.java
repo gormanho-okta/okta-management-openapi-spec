@@ -35,7 +35,8 @@ import static com.okta.sdk.OpenApiSpec.getOperations;
 @SuppressWarnings("unchecked")
 public class ProcessingCodegenAspect {
     @Around("execution(void addHandlebarHelpers(Handlebars)) && args(handlebars)")
-    public void addHandlebarHelpers(Handlebars handlebars) {
+    public void addHandlebarHelpers(ProceedingJoinPoint joinPoint, Handlebars handlebars) throws Throwable {
+        joinPoint.proceed();
         handlebars.registerHelpers(ConditionalHelpers.class);
         handlebars.registerHelpers(StringHelpers.class);
     }
