@@ -8,6 +8,8 @@ public interface Processor {
         switch (type) {
             case "hideBaseMember":
                 return new HideBaseMemberProcessor(parameters);
+            case "overridePropertyType":
+                return new OverridePropertyTypeProcessor(parameters);
             case "removeParameter":
                 return new RemoveParameterProcessor(parameters);
             case "renameApi":

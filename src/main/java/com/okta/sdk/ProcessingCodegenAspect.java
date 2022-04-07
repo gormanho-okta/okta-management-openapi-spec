@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.okta.sdk.OpenApiExtensions.HIDE_BASE_MEMBER;
+import static com.okta.sdk.OpenApiExtensions.OVERRIDE_PROPERTY_TYPE;
 import static com.okta.sdk.OpenApiExtensions.REMOVE_PARAMETER;
 import static com.okta.sdk.OpenApiExtensions.RENAME_API;
 import static com.okta.sdk.OpenApiExtensions.RENAME_MODEL;
@@ -129,6 +130,21 @@ public class ProcessingCodegenAspect {
         if (getSpecGlobalOption(codegen.getOpenAPI(), "resolvePropertyConflictsForJava", true)) {
             joinPoint.proceed(new Object[]{codegenModel, allModels});
         }
+    }
+
+    @Around("execution(String getTypeDeclaration(Schema)) && args(propertySchema)")
+    public String getTypeDeclaration(ProceedingJoinPoint joinPoint, Schema propertySchema) throws Throwable {
+        DefaultCodegenConfig codegen = (DefaultCodegenConfig) joinPoint.getTarget();
+        List<Map<String, String>> overrides = getSpecExtension(codegen.getOpenAPI(), OVERRIDE_PROPERTY_TYPE, Collections.emptyList());
+        for (Map<String, String> override : overrides) {
+            if (override.containsKey("format")) {
+                String format = override.get("format");
+                if (format.equals(propertySchema.getFormat())) {
+                    return override.get("type");
+                }
+            }
+        }
+        return (String) joinPoint.proceed(new Object[]{propertySchema});
     }
 
     private <T> T getSpecExtension(OpenAPI spec, String name, T defaultValue) {
