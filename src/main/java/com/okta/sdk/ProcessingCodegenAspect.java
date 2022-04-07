@@ -28,7 +28,7 @@ import static com.okta.sdk.OpenApiExtensions.REMOVE_PARAMETER;
 import static com.okta.sdk.OpenApiExtensions.RENAME_API;
 import static com.okta.sdk.OpenApiExtensions.RENAME_MODEL;
 import static com.okta.sdk.OpenApiExtensions.RENAME_PARAMETER;
-import static com.okta.sdk.OpenApiExtensions.SET_BOOLEAN_OPERATION_PREFIX;
+import static com.okta.sdk.OpenApiExtensions.SET_GLOBAL_OPTIONS;
 import static com.okta.sdk.OpenApiSpec.getOperations;
 
 @Aspect
@@ -105,7 +105,7 @@ public class ProcessingCodegenAspect {
     @Around("execution(String toBooleanGetter(String)) && args(name)")
     public String toBooleanGetter(ProceedingJoinPoint joinPoint, String name) throws Throwable {
         DefaultCodegenConfig codegen = (DefaultCodegenConfig) joinPoint.getTarget();
-        String prefix = getSpecExtension(codegen.getOpenAPI(), SET_BOOLEAN_OPERATION_PREFIX, null);
+        String prefix = getSpecGlobalOption(codegen.getOpenAPI(), "booleanOperationPrefix", null);
         return prefix == null
                 ? (String) joinPoint.proceed(new Object[]{name})
                 : prefix + codegen.getterAndSetterCapitalize(name);
@@ -123,10 +123,22 @@ public class ProcessingCodegenAspect {
         return result;
     }
 
+    @Around("execution(void fixUpParentAndInterfaces(CodegenModel, Map<String, CodegenModel>)) && args(codegenModel, allModels)")
+    public void fixUpParentAndInterfaces(ProceedingJoinPoint joinPoint, CodegenModel codegenModel, Map<String, CodegenModel> allModels) throws Throwable {
+        DefaultCodegenConfig codegen = (DefaultCodegenConfig) joinPoint.getTarget();
+        if (getSpecGlobalOption(codegen.getOpenAPI(), "resolvePropertyConflictsForJava", true)) {
+            joinPoint.proceed(new Object[]{codegenModel, allModels});
+        }
+    }
+
     private <T> T getSpecExtension(OpenAPI spec, String name, T defaultValue) {
         if (spec != null && spec.getExtensions() != null && spec.getExtensions().containsKey(name)) {
             return (T) spec.getExtensions().get(name);
         }
         return defaultValue;
+    }
+
+    private <T> T getSpecGlobalOption(OpenAPI spec, String name, T defaultValue) {
+        return (T) getSpecExtension(spec, SET_GLOBAL_OPTIONS, Collections.emptyMap()).getOrDefault(name, defaultValue);
     }
 }
