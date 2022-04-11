@@ -11,6 +11,7 @@ import io.swagger.codegen.v3.generators.DefaultCodegenConfig;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.oas.models.parameters.RequestBody;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Around;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 
 import static com.okta.sdk.OpenApiExtensions.GENERATE_LIST_MODELS;
 import static com.okta.sdk.OpenApiExtensions.HIDE_BASE_MEMBER;
+import static com.okta.sdk.OpenApiExtensions.OVERRIDE_PARAMETER_TYPE;
 import static com.okta.sdk.OpenApiExtensions.OVERRIDE_PROPERTY_TYPE;
 import static com.okta.sdk.OpenApiExtensions.REMOVE_PARAMETER;
 import static com.okta.sdk.OpenApiExtensions.RENAME_API;
@@ -206,6 +208,25 @@ public class ProcessingCodegenAspect {
         }
 
         return co;
+    }
+
+    @Around("execution(CodegenParameter fromRequestBody(RequestBody, String, Schema, Map<String, Schema>, Set<String>)) && args(body, name, schema, schemas, imports)")
+    public CodegenParameter fromRequestBody(ProceedingJoinPoint joinPoint, RequestBody body, String name, Schema schema, Map<String, Schema> schemas, Set<String> imports) throws Throwable {
+        CodegenParameter codegenParameter = (CodegenParameter) joinPoint.proceed(new Object[]{body, name, schema, schemas, imports});
+
+        DefaultCodegenConfig codegen = (DefaultCodegenConfig) joinPoint.getTarget();
+        List<Map<String, String>> overrides = getSpecExtension(codegen.getOpenAPI(), OVERRIDE_PARAMETER_TYPE, Collections.emptyList());
+        for (Map<String, String> override : overrides) {
+            if (override.containsKey("format")) {
+                String format = override.get("format");
+                if (format.equals(schema.getFormat())) {
+                    codegenParameter.baseType = override.get("type");
+                    codegenParameter.dataType = codegenParameter.baseType;
+                }
+            }
+        }
+
+        return codegenParameter;
     }
 
     private <T> T getSpecExtension(OpenAPI spec, String name, T defaultValue) {

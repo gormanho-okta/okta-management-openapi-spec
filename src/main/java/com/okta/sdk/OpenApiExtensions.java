@@ -3,6 +3,7 @@ package com.okta.sdk;
 public abstract class OpenApiExtensions {
     public static final String GENERATE_LIST_MODELS = "x-okta-generate-list-models";
     public static final String HIDE_BASE_MEMBER = "x-okta-hide-base-member";
+    public static final String OVERRIDE_PARAMETER_TYPE = "x-okta-override-parameter-type";
     public static final String OVERRIDE_PROPERTY_TYPE = "x-okta-override-property-type";
     public static final String REMOVE_PARAMETER = "x-okta-remove-parameter";
     public static final String RENAME_API = "x-okta-rename-api";

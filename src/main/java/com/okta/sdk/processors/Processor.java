@@ -10,6 +10,8 @@ public interface Processor {
                 return new GenerateListModelsProcessor();
             case "hideBaseMember":
                 return new HideBaseMemberProcessor(parameters);
+            case "overrideParameterType":
+                return new OverrideParameterTypeProcessor(parameters);
             case "overridePropertyType":
                 return new OverridePropertyTypeProcessor(parameters);
             case "removeParameter":
