@@ -9,6 +9,7 @@ import io.swagger.codegen.v3.CodegenProperty;
 import io.swagger.codegen.v3.generators.DefaultCodegenConfig;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.Schema;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.After;
@@ -23,6 +24,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.okta.sdk.OpenApiExtensions.GENERATE_LIST_MODELS;
 import static com.okta.sdk.OpenApiExtensions.HIDE_BASE_MEMBER;
 import static com.okta.sdk.OpenApiExtensions.OVERRIDE_PROPERTY_TYPE;
 import static com.okta.sdk.OpenApiExtensions.REMOVE_PARAMETER;
@@ -30,7 +32,10 @@ import static com.okta.sdk.OpenApiExtensions.RENAME_API;
 import static com.okta.sdk.OpenApiExtensions.RENAME_MODEL;
 import static com.okta.sdk.OpenApiExtensions.RENAME_PARAMETER;
 import static com.okta.sdk.OpenApiExtensions.SET_GLOBAL_OPTIONS;
+import static com.okta.sdk.OpenApiExtensions.TOP_LEVEL_RESOURCES;
+import static com.okta.sdk.OpenApiSpec.getArrayItemSchema;
 import static com.okta.sdk.OpenApiSpec.getOperations;
+import static com.okta.sdk.OpenApiSpec.isItemArray;
 
 @Aspect
 @SuppressWarnings("unchecked")
@@ -40,6 +45,17 @@ public class ProcessingCodegenAspect {
         joinPoint.proceed();
         handlebars.registerHelpers(ConditionalHelpers.class);
         handlebars.registerHelpers(StringHelpers.class);
+    }
+
+    @Around("execution(CodegenModel fromModel(String, Schema, Map<String, Schema>)) && args(name, model, allDefinitions)")
+    public CodegenModel fromModel(ProceedingJoinPoint joinPoint, String name, Schema model, Map<String, Schema> allDefinitions) throws Throwable {
+        CodegenModel codegenModel = (CodegenModel) joinPoint.proceed(new Object[]{name, model, allDefinitions});
+        if (model.getExtensions() != null && model.getExtensions().containsKey("x-baseType")) {
+            String baseType = (String) model.getExtensions().get("x-baseType");
+            DefaultCodegenConfig codegen = (DefaultCodegenConfig) joinPoint.getTarget();
+            codegenModel.vendorExtensions.put("baseType", codegen.toModelName(baseType));
+        }
+        return codegenModel;
     }
 
     @Around("execution(String io.swagger.codegen.v3.CodegenConfig+.toModelName(String)) && args(name)")
@@ -135,6 +151,7 @@ public class ProcessingCodegenAspect {
     @Around("execution(String getTypeDeclaration(Schema)) && args(propertySchema)")
     public String getTypeDeclaration(ProceedingJoinPoint joinPoint, Schema propertySchema) throws Throwable {
         DefaultCodegenConfig codegen = (DefaultCodegenConfig) joinPoint.getTarget();
+
         List<Map<String, String>> overrides = getSpecExtension(codegen.getOpenAPI(), OVERRIDE_PROPERTY_TYPE, Collections.emptyList());
         for (Map<String, String> override : overrides) {
             if (override.containsKey("format")) {
@@ -144,6 +161,16 @@ public class ProcessingCodegenAspect {
                 }
             }
         }
+
+        if (getSpecExtension(codegen.getOpenAPI(), GENERATE_LIST_MODELS, false) && isItemArray(propertySchema)) {
+            Schema itemSchema = getArrayItemSchema(propertySchema);
+            String itemType = (String) joinPoint.proceed(new Object[]{itemSchema});
+            Set<String> topLevelResources = getSpecExtension(codegen.getOpenAPI(), TOP_LEVEL_RESOURCES, Collections.emptySet());
+            if (!codegen.languageSpecificPrimitives().contains(itemType) && topLevelResources.contains(itemType)) {
+                return itemType + "List";
+            }
+        }
+
         return (String) joinPoint.proceed(new Object[]{propertySchema});
     }
 

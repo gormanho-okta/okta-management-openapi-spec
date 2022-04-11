@@ -6,6 +6,8 @@ import io.swagger.v3.oas.models.OpenAPI;
 public interface Processor {
     static Processor create(String type, Object parameters) {
         switch (type) {
+            case "generateListModels":
+                return new GenerateListModelsProcessor();
             case "hideBaseMember":
                 return new HideBaseMemberProcessor(parameters);
             case "overridePropertyType":
