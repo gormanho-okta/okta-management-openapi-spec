@@ -21,7 +21,6 @@ import org.aspectj.lang.annotation.Aspect;
 
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -83,11 +82,12 @@ public class ProcessingCodegenAspect {
 
     @Around("execution(void io.swagger.codegen.v3.CodegenConfig+.postProcessModelProperty(CodegenModel, CodegenProperty)) && args(model, property)")
     public void postProcessModelProperty(ProceedingJoinPoint joinPoint, CodegenModel model, CodegenProperty property) {
-        Map<String, Object> extensions = model.getVendorExtensions();
-        if (extensions.containsKey(HIDE_BASE_MEMBER)) {
-            Set<String> properties = (Set<String>) extensions.get(HIDE_BASE_MEMBER);
+        Map<String, Object> modelExtensions = model.getVendorExtensions();
+        Map<String, Object> propertyExtensions = property.getVendorExtensions();
+        if (modelExtensions.containsKey(HIDE_BASE_MEMBER)) {
+            Set<String> properties = (Set<String>) modelExtensions.get(HIDE_BASE_MEMBER);
             if (properties.contains(property.getName())) {
-                property.getVendorExtensions().put(HIDE_BASE_MEMBER, true);
+                propertyExtensions.put(HIDE_BASE_MEMBER, true);
             }
         }
 
@@ -100,6 +100,11 @@ public class ProcessingCodegenAspect {
                     && property.getName().equals(override.get("property"))) {
                 property.datatypeWithEnum = override.get("type");
             }
+        }
+
+        if (propertyExtensions.containsKey("x-okta-known-values")) {
+            propertyExtensions.put("x-okta-known-values-exists", true);
+            propertyExtensions.put("x-okta-known-values-class-name", property.getNameInCamelCase() + "Values");
         }
     }
 
