@@ -76,13 +76,24 @@ public class ProcessingCodegenAspect {
         return modelName;
     }
 
-    @After("execution(void io.swagger.codegen.v3.CodegenConfig+.postProcessModelProperty(CodegenModel, CodegenProperty)) && args(model, property)")
-    public void postProcessModelProperty(CodegenModel model, CodegenProperty property) {
+    @Around("execution(void io.swagger.codegen.v3.CodegenConfig+.postProcessModelProperty(CodegenModel, CodegenProperty)) && args(model, property)")
+    public void postProcessModelProperty(ProceedingJoinPoint joinPoint, CodegenModel model, CodegenProperty property) {
         Map<String, Object> extensions = model.getVendorExtensions();
         if (extensions.containsKey(HIDE_BASE_MEMBER)) {
             Set<String> properties = (Set<String>) extensions.get(HIDE_BASE_MEMBER);
             if (properties.contains(property.getName())) {
                 property.getVendorExtensions().put(HIDE_BASE_MEMBER, true);
+            }
+        }
+
+        DefaultCodegenConfig codegen = (DefaultCodegenConfig) joinPoint.getTarget();
+        List<Map<String, String>> overrides = getSpecExtension(codegen.getOpenAPI(), OVERRIDE_PROPERTY_TYPE, Collections.emptyList());
+        for (Map<String, String> override : overrides) {
+            if (override.containsKey("model")
+                    && override.containsKey("property")
+                    && model.getName().equals(override.get("model"))
+                    && property.getName().equals(override.get("property"))) {
+                property.datatypeWithEnum = override.get("type");
             }
         }
     }
