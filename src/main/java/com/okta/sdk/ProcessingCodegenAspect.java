@@ -10,6 +10,8 @@ import io.swagger.codegen.v3.CodegenProperty;
 import io.swagger.codegen.v3.generators.DefaultCodegenConfig;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.PathItem;
+import io.swagger.v3.oas.models.PathItem.HttpMethod;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.RequestBody;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -19,6 +21,7 @@ import org.aspectj.lang.annotation.Aspect;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -119,6 +122,23 @@ public class ProcessingCodegenAspect {
                 .filter(Objects::nonNull)
                 .forEach(parameters -> parameters.removeIf(parameter ->
                         !parameter.getRequired() && remove.contains(parameter.getName())));
+
+        spec.getPaths().values().stream()
+                .map(PathItem::readOperationsMap)
+                .forEach(operations -> {
+                    addRequestBodyNameExtension(operations.get(HttpMethod.PUT));
+                    addRequestBodyNameExtension(operations.get(HttpMethod.POST));
+                });
+    }
+
+    private void addRequestBodyNameExtension(Operation operation) {
+        if (operation != null && operation.getExtensions() != null) {
+            Map<String, Object> extensions = operation.getExtensions();
+            String requestBodyName = (String) extensions.get("x-codegen-request-body-name");
+            if (requestBodyName != null) {
+                operation.getRequestBody().addExtension("x-codegen-request-body-name", requestBodyName);
+            }
+        }
     }
 
     @Around("execution(String toVarName(String)) && args(name)")
@@ -239,4 +259,5 @@ public class ProcessingCodegenAspect {
     private <T> T getSpecGlobalOption(OpenAPI spec, String name, T defaultValue) {
         return (T) getSpecExtension(spec, SET_GLOBAL_OPTIONS, Collections.emptyMap()).getOrDefault(name, defaultValue);
     }
+
 }
