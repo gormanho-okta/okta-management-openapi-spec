@@ -5,11 +5,11 @@ import com.github.jknack.handlebars.helper.ConditionalHelpers;
 import com.github.jknack.handlebars.helper.StringHelpers;
 import io.swagger.codegen.v3.CodegenModel;
 import io.swagger.codegen.v3.CodegenOperation;
+import io.swagger.codegen.v3.CodegenParameter;
 import io.swagger.codegen.v3.CodegenProperty;
 import io.swagger.codegen.v3.generators.DefaultCodegenConfig;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
-import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.Schema;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.After;
@@ -183,6 +183,29 @@ public class ProcessingCodegenAspect {
         }
 
         return (String) joinPoint.proceed(new Object[]{propertySchema});
+    }
+
+    @Around("execution(CodegenOperation fromOperation(String, String, Operation, Map<String, Schema>, OpenAPI)) && args(path, httpMethod, operation, definitions, openAPI)")
+    public CodegenOperation fromOperation(ProceedingJoinPoint joinPoint, String path, String httpMethod, Operation operation, Map<String, Schema> definitions, OpenAPI openAPI) throws Throwable {
+        CodegenOperation co = (CodegenOperation) joinPoint.proceed(new Object[]{path, httpMethod, operation, definitions, openAPI});
+
+        if (co.getAllParams().parallelStream().anyMatch(param -> !param.required)) {
+            co.vendorExtensions.put("hasOptional", true);
+
+            List<CodegenParameter> nonOptionalParams = co.getAllParams().stream()
+                    .filter(param -> param.required)
+                    .map(CodegenParameter::copy)
+                    .collect(Collectors.toList());
+            if (!nonOptionalParams.isEmpty()) {
+                co.vendorExtensions.put("nonOptionalParams", nonOptionalParams);
+            }
+
+            if (co.bodyParam != null && !co.bodyParam.required) {
+                co.vendorExtensions.put("optionalBody", true);
+            }
+        }
+
+        return co;
     }
 
     private <T> T getSpecExtension(OpenAPI spec, String name, T defaultValue) {
