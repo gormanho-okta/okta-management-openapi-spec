@@ -30,6 +30,9 @@ public class OktaSdkCodegenMojo extends AbstractMojo {
     @Parameter(name = "errataFile")
     private File errataFile;
 
+    @Parameter(name = "ignoreFile")
+    private File ignoreFile;
+
     public void execute() throws MojoExecutionException {
         try {
             new OktaSdkGenerator(errataFile)
@@ -40,6 +43,7 @@ public class OktaSdkCodegenMojo extends AbstractMojo {
                             .setModelPackage(modelPackage)
                             .setTemplateDir(templateDirectory.getAbsolutePath())
                             .setOutputDir(output.getAbsolutePath())
+                            .setIgnoreFileOverride(ignoreFile.getAbsolutePath())
                             .addSystemProperty(CodegenConstants.MODEL_TESTS, "false")
                             .addSystemProperty(CodegenConstants.MODEL_DOCS, "false")
                             .addSystemProperty(CodegenConstants.API_TESTS, "false")
