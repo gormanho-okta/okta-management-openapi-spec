@@ -122,13 +122,16 @@ public class ProcessingCodegenAspect {
         }
     }
 
-    @Around("execution(String io.swagger.codegen.v3.CodegenConfig+.toApiName(String)) && args(name)")
+    @Around("execution(String toApiName(String)) && args(name)")
     public String toApiName(ProceedingJoinPoint joinPoint, String name) throws Throwable {
-        String apiName = (String) joinPoint.proceed(new Object[]{name});
         DefaultCodegenConfig codegen = (DefaultCodegenConfig) joinPoint.getTarget();
+        String apiName = DefaultCodegenConfig.camelize(codegen.sanitizeName(name));
         Map<String, String> renames = getSpecExtension(codegen.getOpenAPI(), RENAME_API, Collections.emptyMap());
-        if (renames.containsKey(apiName)) {
-            apiName = renames.get(apiName);
+        for (Map.Entry<String, String> entry : renames.entrySet()) {
+            String from = entry.getKey();
+            if (apiName.matches(from)) {
+                apiName = apiName.replaceAll(from, entry.getValue());
+            }
         }
         return apiName;
     }
