@@ -8,6 +8,7 @@ public abstract class OpenApiExtensions {
     public static final String REMOVE_PARAMETER = "x-okta-remove-parameter";
     public static final String RENAME_API = "x-okta-rename-api";
     public static final String RENAME_MODEL = "x-okta-rename-model";
+    public static final String RENAME_MODEL_FILE = "x-okta-rename-model-file";
     public static final String RENAME_PARAMETER = "x-okta-rename-parameter";
     public static final String SET_GLOBAL_OPTIONS = "x-okta-set-global-options";
     public static final String TOP_LEVEL_RESOURCES = "x-okta-top-level-resources";

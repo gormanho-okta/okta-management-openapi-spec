@@ -34,6 +34,7 @@ import static com.okta.sdk.OpenApiExtensions.OVERRIDE_PROPERTY_TYPE;
 import static com.okta.sdk.OpenApiExtensions.REMOVE_PARAMETER;
 import static com.okta.sdk.OpenApiExtensions.RENAME_API;
 import static com.okta.sdk.OpenApiExtensions.RENAME_MODEL;
+import static com.okta.sdk.OpenApiExtensions.RENAME_MODEL_FILE;
 import static com.okta.sdk.OpenApiExtensions.RENAME_PARAMETER;
 import static com.okta.sdk.OpenApiExtensions.SET_GLOBAL_OPTIONS;
 import static com.okta.sdk.OpenApiExtensions.TOP_LEVEL_RESOURCES;
@@ -78,6 +79,19 @@ public class ProcessingCodegenAspect {
             }
         }
         return modelName;
+    }
+
+    @Around("execution(String toModelFilename(String)) && args(name)")
+    public String toModelFilename(ProceedingJoinPoint joinPoint, String name) throws Throwable {
+        DefaultCodegenConfig codegen = (DefaultCodegenConfig) joinPoint.getTarget();
+        Map<String, String> renames = getSpecExtension(codegen.getOpenAPI(), RENAME_MODEL_FILE, Collections.emptyMap());
+        for (Map.Entry<String, String> entry : renames.entrySet()) {
+            String from = entry.getKey();
+            if (name.matches(from)) {
+                name = name.replaceAll(from, entry.getValue());
+            }
+        }
+        return (String) joinPoint.proceed(new Object[]{name});
     }
 
     @Around("execution(void io.swagger.codegen.v3.CodegenConfig+.postProcessModelProperty(CodegenModel, CodegenProperty)) && args(model, property)")

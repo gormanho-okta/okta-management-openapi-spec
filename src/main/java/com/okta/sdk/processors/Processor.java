@@ -20,6 +20,8 @@ public interface Processor {
                 return new RenameApiProcessor(parameters);
             case "renameModel":
                 return new RenameModelProcessor(parameters);
+            case "renameModelFile":
+                return new RenameModelFileProcessor(parameters);
             case "renameParameter":
                 return new RenameParameterProcessor(parameters);
             case "renameRequestBody":
